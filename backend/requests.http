@@ -1,0 +1,384 @@
+###############################################################################
+# PoolTrack — koleksi request API
+#
+# Cara pakai: pasang ekstensi VS Code "REST Client" (humao.rest-client),
+# lalu klik "Send Request" di atas setiap blok.
+#
+# ID di bawah mengikuti data seed (`npm run db:reset`):
+#   status : 1 MASUK, 2 DIINSPEKSI, 3 SIAP_JUAL, 4 KELUAR
+#   grade  : 1 A, 2 B, 3 C, 4 D
+#   pool   : 1 Tangerang (11/12, hampir penuh), 2 Bekasi, 3 Bandung, 4 Surabaya
+#   mitra  : 1 DMS, 2 KAN, 3 AFP, 4 SKB, 5 LDP (nonaktif)
+#   jenis  : 1 Motor, 2 Mobil, 3 Truk
+###############################################################################
+
+@baseUrl = http://localhost:4000/api
+@json = application/json
+@token = {{login.response.body.data.token}}
+
+### Health check (status API + koneksi database) — terbuka tanpa login
+GET {{baseUrl}}/health
+
+
+###############################################################################
+# AUTH — jalankan "Login" dulu; token-nya otomatis dipakai semua request di bawah
+###############################################################################
+
+### [401] Tanpa token → ditolak (semua endpoint selain /health & /auth wajib login)
+GET {{baseUrl}}/units
+
+### Register akun baru — langsung mendapat token (email harus belum terdaftar)
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{ "name": "Pengguna Baru", "email": "pengguna.baru@contoh.example", "password": "rahasia123" }
+
+### [409] Register dengan email yang sudah terdaftar
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{ "name": "Duplikat", "email": "ADMIN@pooltrack.example", "password": "rahasia123" }
+
+### [400] Register data tidak valid
+POST {{baseUrl}}/auth/register
+Content-Type: {{json}}
+
+{ "name": "A", "email": "bukan-email", "password": "123" }
+
+### [401] Login dengan password salah
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{ "email": "admin@pooltrack.example", "password": "password-salah" }
+
+### Login dengan akun demo (dari seed) — token disimpan ke variabel @token
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: {{json}}
+
+{ "email": "admin@pooltrack.example", "password": "pooltrack123" }
+
+### Data pengguna yang sedang login
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# REFERENSI (read-only, diisi seeder)
+###############################################################################
+
+### Status unit — label, urutan, warna badge, flag kapasitas
+GET {{baseUrl}}/references/unit-statuses
+Authorization: Bearer {{token}}
+
+### Grade inspeksi A–D
+GET {{baseUrl}}/references/inspection-grades
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# MASTER: MITRA
+###############################################################################
+
+### Daftar mitra (pagination, pencarian, urutan, filter aktif)
+GET {{baseUrl}}/partners?page=1&limit=10&search=kredit&sort=name&order=asc
+Authorization: Bearer {{token}}
+
+### Hanya mitra aktif (dipakai dropdown form unit)
+GET {{baseUrl}}/partners?is_active=true&limit=100
+Authorization: Bearer {{token}}
+
+### Detail mitra
+GET {{baseUrl}}/partners/1
+Authorization: Bearer {{token}}
+
+### Tambah mitra
+# @name createPartner
+POST {{baseUrl}}/partners
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "code": "uji",
+  "name": "PT Uji Coba Fiktif",
+  "contact_person": "Nama Kontak",
+  "phone": "021-5550-9999",
+  "email": "uji@contoh.example",
+  "is_active": true
+}
+
+### Ubah mitra (PUT = kirim data lengkap)
+PUT {{baseUrl}}/partners/{{createPartner.response.body.data.id}}
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "code": "UJI",
+  "name": "PT Uji Coba Diubah",
+  "contact_person": "",
+  "phone": "",
+  "email": "",
+  "is_active": false
+}
+
+### Hapus mitra yang belum dipakai unit → 200
+DELETE {{baseUrl}}/partners/{{createPartner.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+### [409] Kode mitra sudah dipakai
+POST {{baseUrl}}/partners
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "code": "DMS", "name": "PT Duplikat" }
+
+### [409] Hapus mitra yang masih tercatat pada unit (aturan 7)
+DELETE {{baseUrl}}/partners/1
+Authorization: Bearer {{token}}
+
+### [400] Validasi gagal — error per field
+POST {{baseUrl}}/partners
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "code": "x", "name": "", "email": "bukan-email" }
+
+
+###############################################################################
+# MASTER: POOL
+###############################################################################
+
+### Daftar pool + okupansi (occupied = unit aktif)
+GET {{baseUrl}}/pools?sort=occupied&order=desc
+Authorization: Bearer {{token}}
+
+### Detail pool
+GET {{baseUrl}}/pools/1
+Authorization: Bearer {{token}}
+
+### Tambah pool
+POST {{baseUrl}}/pools
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "code": "SMG",
+  "name": "Pool Semarang",
+  "city": "Semarang",
+  "address": "Jl. Contoh No. 1",
+  "capacity": 15,
+  "is_active": true
+}
+
+### [409] Kapasitas di bawah jumlah unit aktif (keputusan G) — Tangerang berisi 11 unit
+PUT {{baseUrl}}/pools/1
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "code": "TGR",
+  "name": "Pool Tangerang",
+  "city": "Tangerang",
+  "address": "Jl. Gatot Subroto Km 5 No. 18, Jatiuwung",
+  "capacity": 10,
+  "is_active": true
+}
+
+
+###############################################################################
+# MASTER: JENIS KENDARAAN
+###############################################################################
+
+### Daftar jenis kendaraan
+GET {{baseUrl}}/vehicle-types
+Authorization: Bearer {{token}}
+
+### Tambah jenis kendaraan
+POST {{baseUrl}}/vehicle-types
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "code": "PICKUP", "name": "Pick Up", "is_active": true }
+
+
+###############################################################################
+# UNIT — ALUR DEMO: MASUK → DIINSPEKSI → SIAP JUAL → KELUAR
+# Jalankan berurutan dari atas ke bawah.
+###############################################################################
+
+### Daftar unit (filter: status_id, pool_id, partner_id, vehicle_type_id)
+GET {{baseUrl}}/units?pool_id=1&sort=received_at&order=desc
+Authorization: Bearer {{token}}
+
+### Pencarian plat tanpa spasi: "b5507" menemukan "B 5507 GHA"
+GET {{baseUrl}}/units?search=b5507
+Authorization: Bearer {{token}}
+
+### 1) Unit masuk ke Pool Tangerang (11/12 → 12/12). Plat dinormalisasi jadi "B 1234 XYZ".
+# @name createUnit
+POST {{baseUrl}}/units
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "plate_number": "b1234xyz",
+  "brand": "Toyota",
+  "model": "Avanza 1.3 G",
+  "year": 2019,
+  "color": "Hitam",
+  "vehicle_type_id": 2,
+  "partner_id": 1,
+  "pool_id": 1,
+  "received_at": "2026-10-19",
+  "notes": ""
+}
+
+### 2) [409] Pool Tangerang sekarang penuh (aturan 2)
+POST {{baseUrl}}/units
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "plate_number": "B 7777 AA",
+  "brand": "Honda",
+  "model": "Brio",
+  "year": 2020,
+  "vehicle_type_id": 2,
+  "partner_id": 1,
+  "pool_id": 1,
+  "received_at": "2026-10-19"
+}
+
+### 3) [409] Plat sudah dipakai unit aktif (aturan 1)
+POST {{baseUrl}}/units
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "plate_number": "B 1871 KZA",
+  "brand": "Toyota",
+  "model": "Avanza",
+  "year": 2019,
+  "vehicle_type_id": 2,
+  "partner_id": 1,
+  "pool_id": 2,
+  "received_at": "2026-10-19"
+}
+
+### 4) Detail unit — perhatikan `actions` (aksi yang diizinkan, dihitung backend)
+# @name unitDetail
+GET {{baseUrl}}/units/{{createUnit.response.body.data.id}}
+Authorization: Bearer {{token}}
+
+### 5) [409] DIINSPEKSI tidak bisa dipilih manual (keputusan I)
+PATCH {{baseUrl}}/units/{{createUnit.response.body.data.id}}/status
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "to_status_id": 2 }
+
+### 6) Inspeksi pertama → status otomatis DIINSPEKSI (aturan 4)
+POST {{baseUrl}}/units/{{createUnit.response.body.data.id}}/inspections
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "inspection_date": "2026-10-19",
+  "inspector_name": "Agus Santoso",
+  "odometer_km": 85000,
+  "exterior_notes": "Baret pintu kiri",
+  "interior_notes": "",
+  "engine_notes": "",
+  "grade_id": 2,
+  "notes": ""
+}
+
+### 7) Tandai SIAP JUAL (maju satu langkah, aturan 3 & 5)
+PATCH {{baseUrl}}/units/{{createUnit.response.body.data.id}}/status
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "to_status_id": 3, "note": "Lolos pemeriksaan akhir" }
+
+### 8) Pindah pool ke Bekasi (status tidak berubah, tercatat di riwayat)
+PATCH {{baseUrl}}/units/{{createUnit.response.body.data.id}}/move
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "pool_id": 2, "note": "Pool Tangerang padat" }
+
+### 9) Tandai KELUAR → released_at terisi, tidak dihitung kapasitas lagi (aturan 6)
+PATCH {{baseUrl}}/units/{{createUnit.response.body.data.id}}/status
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{ "to_status_id": 4 }
+
+### 10) Riwayat status (timeline)
+GET {{baseUrl}}/units/{{createUnit.response.body.data.id}}/histories
+Authorization: Bearer {{token}}
+
+### 11) Inspeksi milik unit
+GET {{baseUrl}}/units/{{createUnit.response.body.data.id}}/inspections
+Authorization: Bearer {{token}}
+
+### 12) [409] Unit KELUAR adalah arsip — tidak bisa diubah (keputusan C)
+PUT {{baseUrl}}/units/{{createUnit.response.body.data.id}}
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "plate_number": "B 1234 XYZ",
+  "brand": "Toyota",
+  "model": "Avanza",
+  "year": 2019,
+  "vehicle_type_id": 2,
+  "partner_id": 1,
+  "received_at": "2026-10-19"
+}
+
+### 13) Plat yang sudah KELUAR boleh masuk lagi
+POST {{baseUrl}}/units
+Authorization: Bearer {{token}}
+Content-Type: {{json}}
+
+{
+  "plate_number": "B 1234 XYZ",
+  "brand": "Toyota",
+  "model": "Avanza 1.3 G",
+  "year": 2019,
+  "vehicle_type_id": 2,
+  "partner_id": 1,
+  "pool_id": 2,
+  "received_at": "2026-10-19"
+}
+
+### [409] Hapus unit yang bukan berstatus MASUK (aturan 8) — unit seed id 5 berstatus DIINSPEKSI
+DELETE {{baseUrl}}/units/5
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# INSPEKSI
+###############################################################################
+
+### Daftar inspeksi (filter: grade_id, pool_id, unit_id; cari plat / inspektur)
+GET {{baseUrl}}/inspections?grade_id=4&sort=inspection_date&order=desc
+Authorization: Bearer {{token}}
+
+### Detail inspeksi
+GET {{baseUrl}}/inspections/1
+Authorization: Bearer {{token}}
+
+### [409] Hapus satu-satunya inspeksi milik unit (keputusan D)
+DELETE {{baseUrl}}/inspections/1
+Authorization: Bearer {{token}}
+
+
+###############################################################################
+# DASHBOARD
+###############################################################################
+
+### Ringkasan: jumlah per status, okupansi pool, unit per mitra, 5 inspeksi terbaru
+GET {{baseUrl}}/dashboard/summary
+Authorization: Bearer {{token}}

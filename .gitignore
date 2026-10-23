@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment (yang di-commit hanya .env.example)
+.env
+.env.*
+!.env.example
+
+# Logs & OS
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Pengaturan lokal Claude Code (izin perintah di laptop ini)
+.claude/settings.local.json
+
+# Catatan pribadi (tidak ikut di-upload)
+docs/03-panduan-deploy.md
