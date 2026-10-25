@@ -247,7 +247,7 @@ Middleware requireAuth ─▶ token valid? lanjut : 401 ─▶ frontend otomatis
 ### 1. Database
 
 > **Tentang Docker:** `docker-compose.yml` hanya menyediakan MariaDB untuk development. Backend dan frontend dijalankan
-> langsung dengan Node.js (di lokal) dan di-deploy dari kode sumber ke Railway & Vercel, sehingga tidak memerlukan
+> langsung dengan Node.js (di lokal) dan di-deploy dari kode sumber ke Render & Vercel, sehingga tidak memerlukan
 > Docker.
 
 **Pilihan A — Docker:**
@@ -319,6 +319,8 @@ atau salah format.
 | `DB_PASSWORD` | `pooltrack_secret` | Password database |
 | `DB_NAME` | `pooltrack` | Nama database |
 | `DB_TIMEZONE` | `+07:00` | Zona waktu sesi database (WIB) agar `created_at` / riwayat sama di semua server |
+| `DB_SSL` | `false` | `true` untuk database cloud yang mewajibkan koneksi SSL (mis. Aiven) |
+| `DB_SSL_CA` | *(kosong)* | Isi sertifikat CA (PEM) dari penyedia database; wajib jika `DB_SSL=true` |
 | `JWT_SECRET` | *(string acak ≥ 32 karakter)* | Kunci rahasia penanda tangan token login. Buat dengan `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
 | `JWT_EXPIRES_IN` | `8h` | Masa berlaku token login (`8h` = 8 jam, `1d` = 1 hari) |
 
@@ -435,7 +437,10 @@ Kembalikan data ke kondisi awal dengan `npm run db:reset`.
 
 ## Deploy
 
-Rencana: **frontend → Vercel**, **backend + MariaDB → Railway**.
+Rencana: **frontend → Vercel**, **backend → Render**, **database → Aiven for MySQL**.
+
+Di lokal database memakai MariaDB; di cloud memakai MySQL 8 karena kompatibel penuh dengan driver `mysql2` dan
+query yang dipakai. Koneksi backend ↔ database cloud dienkripsi dengan SSL (`DB_SSL=true` + `DB_SSL_CA`).
 
 ## Dokumen lain
 

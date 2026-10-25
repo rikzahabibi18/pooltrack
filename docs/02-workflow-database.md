@@ -198,7 +198,7 @@ Kode status hanya dipakai sebagai konstanta di `backend/src/constants/unitStatus
 | C | Unit berstatus **KELUAR** tidak bisa diedit, dipindah pool, atau diinspeksi | Unit sudah diserahkan; datanya menjadi arsip/riwayat |
 | D | Inspeksi **satu-satunya** milik unit tidak bisa dihapus (409); inspeksi unit KELUAR tidak bisa diubah/dihapus | Unit yang punya inspeksi pasti sudah DIINSPEKSI ke atas — tanpa inspeksi statusnya tidak sah (aturan 5). Salah input → edit, bukan hapus |
 | E | Dropdown di form unit hanya menampilkan master yang `is_active = true` | Master nonaktif tidak dipakai untuk data baru, tapi data lama tetap valid |
-| F | Hapus unit: status MASUK **dan** belum ada inspeksi | Gabungan aturan di CLAUDE.md dan tabel di atas |
+| F | Hapus unit: status MASUK **dan** belum ada inspeksi | Gabungan aturan "unit hanya bisa dihapus saat MASUK" dan tabel di atas |
 | G | Kapasitas pool tidak boleh diubah menjadi lebih kecil dari jumlah unit aktif saat ini (409) | Tanpa ini pool bisa "kelebihan kapasitas" lewat edit master; dicek dalam transaction + `FOR UPDATE` |
 | H | Pindah pool dicatat di `unit_status_histories` dengan status asal = tujuan dan catatan "Pindah pool: A → B" | Lokasi unit bisa dilacak di timeline; menjawab masalah "unit tercatat di dua pool" |
 | I | Status DIINSPEKSI tidak bisa dipilih manual — hanya otomatis lewat inspeksi pertama (409) | Mencegah unit "diinspeksi" tanpa data inspeksi |

@@ -4,7 +4,7 @@ import { AUTH_TOKEN_STORAGE_KEY } from '@/config/constants'
  * Penyimpanan token login di localStorage.
  *
  * Trade-off (penting untuk dijelaskan): localStorage paling sederhana dan cocok untuk frontend & backend
- * yang beda domain (Vercel ↔ Railway). Kekurangannya, token bisa dibaca JavaScript lain jika ada celah XSS.
+ * yang beda domain (Vercel ↔ Render). Kekurangannya, token bisa dibaca JavaScript lain jika ada celah XSS.
  * Alternatif yang lebih aman adalah cookie httpOnly, tetapi pengaturannya lebih rumit.
  *
  * localStorage bisa tidak tersedia (mis. mode privat ketat). Karena itu token juga disimpan di memori:

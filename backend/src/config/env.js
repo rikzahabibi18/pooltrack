@@ -18,11 +18,24 @@ const envSchema = z.object({
   DB_NAME: z.string().min(1),
   /** Offset zona waktu sesi database, mis. +07:00 (WIB). */
   DB_TIMEZONE: z.string().regex(/^[+-]\d{2}:\d{2}$/, 'format harus seperti +07:00'),
+  /** true jika database cloud mewajibkan koneksi SSL (mis. Aiven). Di laptop: false. */
+  DB_SSL: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+  /**
+   * Sertifikat CA (format PEM) dari penyedia database, untuk memastikan kita benar-benar
+   * terhubung ke server mereka. Jika baris baru tertulis sebagai "\n", diubah jadi baris baru asli.
+   */
+  DB_SSL_CA: z
+    .string()
+    .optional()
+    .transform((value) => value?.replace(/\\n/g, '\n')),
 
   /** Kunci rahasia untuk menandatangani token login. Wajib panjang & acak. */
   JWT_SECRET: z.string().min(32, 'minimal 32 karakter acak'),
   /** Masa berlaku token, mis. 8h (8 jam) atau 1d (1 hari). */
   JWT_EXPIRES_IN: z.string().regex(/^\d+[smhd]$/, 'format harus seperti 8h atau 1d'),
+}).refine((values) => !values.DB_SSL || values.DB_SSL_CA, {
+  path: ['DB_SSL_CA'],
+  message: 'wajib diisi jika DB_SSL=true',
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -49,6 +62,8 @@ export const env = Object.freeze({
     password: values.DB_PASSWORD,
     name: values.DB_NAME,
     timezone: values.DB_TIMEZONE,
+    ssl: values.DB_SSL,
+    sslCa: values.DB_SSL_CA,
   }),
   auth: Object.freeze({
     jwtSecret: values.JWT_SECRET,

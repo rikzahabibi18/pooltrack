@@ -14,6 +14,9 @@ export default {
     password: env.db.password,
     database: env.db.name,
     charset: 'utf8mb4',
+    // Koneksi terenkripsi untuk database cloud (DB_SSL=true). Sertifikat server dicek
+    // terhadap CA dari penyedia, jadi koneksi ditolak kalau server-nya bukan yang asli.
+    ssl: env.db.ssl ? { ca: env.db.sslCa, rejectUnauthorized: true } : undefined,
     // Kolom DATE/TIMESTAMP dikembalikan sebagai string apa adanya,
     // sehingga tanggal tidak bergeser karena konversi timezone di JavaScript.
     dateStrings: true,

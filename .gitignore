@@ -26,3 +26,6 @@ Thumbs.db
 
 # Catatan pribadi (tidak ikut di-upload)
 docs/03-panduan-deploy.md
+
+# Instruksi untuk asisten AI (hanya dipakai di laptop)
+CLAUDE.md
