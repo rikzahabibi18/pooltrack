@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { OPTIONS_LIMIT } from '@/config/constants'
+import { unitKeys } from '@/features/units/keys'
 import { useApiMutation } from '@/hooks/useApiMutation'
 import type { QueryParams } from '@/lib/api'
 import { vehicleTypeApi } from './api'
@@ -9,6 +10,9 @@ export const vehicleTypeKeys = {
   all: ['vehicle-types'] as const,
   list: (params: QueryParams) => [...vehicleTypeKeys.all, 'list', params] as const,
 }
+
+/** Nama jenis kendaraan juga tampil di data unit, jadi ikut di-refresh. */
+const AFFECTED_BY_VEHICLE_TYPE_CHANGE = [vehicleTypeKeys.all, unitKeys.all]
 
 export function useVehicleTypes(params: QueryParams) {
   return useQuery({
@@ -32,13 +36,13 @@ export function useSaveVehicleType() {
   return useApiMutation({
     mutationFn: ({ id, values }: { id?: number; values: VehicleTypeFormValues }) =>
       id ? vehicleTypeApi.update(id, values) : vehicleTypeApi.create(values),
-    invalidateKeys: [vehicleTypeKeys.all],
+    invalidateKeys: AFFECTED_BY_VEHICLE_TYPE_CHANGE,
   })
 }
 
 export function useDeleteVehicleType() {
   return useApiMutation({
     mutationFn: (id: number) => vehicleTypeApi.remove(id),
-    invalidateKeys: [vehicleTypeKeys.all],
+    invalidateKeys: AFFECTED_BY_VEHICLE_TYPE_CHANGE,
   })
 }

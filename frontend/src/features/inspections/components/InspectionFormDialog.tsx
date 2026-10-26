@@ -24,12 +24,21 @@ type InspectionFormDialogProps = {
   plateNumber: string
   /** Tanggal unit masuk; inspeksi tidak boleh sebelum tanggal ini. */
   receivedAt?: string
+  /** Nama status (dari backend) yang otomatis didapat unit jika ini inspeksi pertamanya. */
+  statusAfterFirstInspection?: string
   /** Kosong = tambah inspeksi; terisi = ubah inspeksi tersebut. */
   inspection?: Inspection
   onClose: () => void
 }
 
-export function InspectionFormDialog({ unitId, plateNumber, receivedAt, inspection, onClose }: InspectionFormDialogProps) {
+export function InspectionFormDialog({
+  unitId,
+  plateNumber,
+  receivedAt,
+  statusAfterFirstInspection,
+  inspection,
+  onClose,
+}: InspectionFormDialogProps) {
   const formId = useId()
   const isEdit = Boolean(inspection)
   const saveInspection = useSaveInspection()
@@ -60,7 +69,9 @@ export function InspectionFormDialog({ unitId, plateNumber, receivedAt, inspecti
       description={
         isEdit
           ? 'Perbaiki hasil inspeksi yang salah input.'
-          : 'Inspeksi pertama otomatis mengubah status unit Masuk menjadi Diinspeksi.'
+          : statusAfterFirstInspection
+            ? `Ini inspeksi pertama unit ini, jadi statusnya otomatis berubah menjadi ${statusAfterFirstInspection}.`
+            : 'Catat hasil pemeriksaan kondisi unit.'
       }
       formId={formId}
       submitLabel={isEdit ? 'Simpan perubahan' : 'Simpan inspeksi'}

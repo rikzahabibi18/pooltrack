@@ -28,6 +28,8 @@ export function UnitInspectionsCard({ unit }: { unit: Unit }) {
   const deleteInspection = useDeleteInspection()
   const [dialog, setDialog] = useState<DialogState>(null)
   const canManage = unit.actions.can_inspect
+  /** Unit tanpa inspeksi: inspeksi pertama mengubah status ke langkah berikutnya (nama dari backend). */
+  const statusAfterFirstInspection = unit.inspection_count === 0 ? unit.actions.next_status?.name : undefined
 
   return (
     <Card>
@@ -49,7 +51,10 @@ export function UnitInspectionsCard({ unit }: { unit: Unit }) {
           <EmptyState
             icon={ClipboardCheckIcon}
             title="Belum ada inspeksi"
-            description="Inspeksi pertama akan mengubah status unit menjadi Diinspeksi."
+            description={
+              statusAfterFirstInspection &&
+              `Inspeksi pertama akan mengubah status unit menjadi ${statusAfterFirstInspection}.`
+            }
           />
         )}
 
@@ -118,6 +123,7 @@ export function UnitInspectionsCard({ unit }: { unit: Unit }) {
           unitId={unit.id}
           plateNumber={unit.plate_number}
           receivedAt={unit.received_at}
+          statusAfterFirstInspection={statusAfterFirstInspection}
           inspection={dialog.inspection}
           onClose={() => setDialog(null)}
         />

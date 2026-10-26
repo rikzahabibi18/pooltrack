@@ -454,13 +454,10 @@ query yang dipakai. Koneksi backend ↔ database cloud dienkripsi dengan SSL (`D
 - `CORS_ORIGIN` backend diisi domain frontend, jadi API hanya menerima request dari aplikasi PoolTrack.
 - Tabel & data contoh di Aiven dibuat sekali dari laptop dengan `npm run migrate` dan `npm run seed`.
 
-Langkah lengkapnya ada di [docs/03-panduan-deploy.md](docs/03-panduan-deploy.md).
-
 ## Dokumen lain
 
 - [docs/01-studi-kasus.md](docs/01-studi-kasus.md) — latar belakang, masalah, ruang lingkup
 - [docs/02-workflow-database.md](docs/02-workflow-database.md) — workflow, detail tabel, aturan bisnis, keputusan desain
-- [docs/03-panduan-deploy.md](docs/03-panduan-deploy.md) — langkah deploy ke Vercel + Aiven
 - [docs/demo-queries.sql](docs/demo-queries.sql) — query SQL untuk memverifikasi data langsung di database
 - [backend/requests.http](backend/requests.http) — koleksi request API
 

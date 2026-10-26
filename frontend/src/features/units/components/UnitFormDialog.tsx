@@ -8,6 +8,7 @@ import { TextField } from '@/components/form/TextField'
 import { FieldGroup, FieldSeparator } from '@/components/ui/field'
 import { usePartnerOptions } from '@/features/partners/hooks'
 import { usePoolOptions } from '@/features/pools/hooks'
+import { useUnitStatuses } from '@/features/references/hooks'
 import { useVehicleTypeOptions } from '@/features/vehicle-types/hooks'
 import { todayISO } from '@/lib/date'
 import { applyServerErrors } from '@/lib/form'
@@ -43,6 +44,8 @@ export function UnitFormDialog({ unit, onClose }: UnitFormDialogProps) {
   const partners = usePartnerOptions()
   const vehicleTypes = useVehicleTypeOptions()
   const pools = usePoolOptions()
+  // API mengurutkan status berdasarkan `sequence`, jadi elemen pertama = status awal unit baru.
+  const initialStatus = useUnitStatuses().data?.[0]
 
   const form = useForm<UnitFormInput, unknown, UnitFormValues>({
     resolver: zodResolver(unitFormSchema),
@@ -73,7 +76,9 @@ export function UnitFormDialog({ unit, onClose }: UnitFormDialogProps) {
       description={
         isEdit
           ? 'Pool dan status tidak diubah di sini — gunakan tombol Pindah Pool atau Ubah Status.'
-          : 'Unit baru akan berstatus Masuk dan tercatat di riwayat.'
+          : initialStatus
+            ? `Unit baru akan berstatus ${initialStatus.name} dan tercatat di riwayat.`
+            : 'Unit baru akan tercatat di riwayat.'
       }
       formId={formId}
       submitLabel={isEdit ? 'Simpan perubahan' : 'Simpan unit'}

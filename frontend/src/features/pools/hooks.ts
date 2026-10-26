@@ -1,5 +1,8 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { OPTIONS_LIMIT } from '@/config/constants'
+import { dashboardKeys } from '@/features/dashboard/keys'
+import { inspectionKeys } from '@/features/inspections/keys'
+import { unitKeys } from '@/features/units/keys'
 import { useApiMutation } from '@/hooks/useApiMutation'
 import type { QueryParams } from '@/lib/api'
 import { poolApi } from './api'
@@ -10,6 +13,9 @@ export const poolKeys = {
   all: ['pools'] as const,
   list: (params: QueryParams) => [...poolKeys.all, 'list', params] as const,
 }
+
+/** Nama & kapasitas pool juga tampil di data unit, inspeksi, dan okupansi dashboard, jadi ikut di-refresh. */
+const AFFECTED_BY_POOL_CHANGE = [poolKeys.all, unitKeys.all, inspectionKeys.all, dashboardKeys.all]
 
 export function usePools(params: QueryParams) {
   return useQuery({
@@ -33,13 +39,13 @@ export function useSavePool() {
   return useApiMutation({
     mutationFn: ({ id, values }: { id?: number; values: PoolFormValues }) =>
       id ? poolApi.update(id, values) : poolApi.create(values),
-    invalidateKeys: [poolKeys.all],
+    invalidateKeys: AFFECTED_BY_POOL_CHANGE,
   })
 }
 
 export function useDeletePool() {
   return useApiMutation({
     mutationFn: (id: number) => poolApi.remove(id),
-    invalidateKeys: [poolKeys.all],
+    invalidateKeys: AFFECTED_BY_POOL_CHANGE,
   })
 }

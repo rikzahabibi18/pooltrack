@@ -85,14 +85,15 @@ async function assertPoolHasSpace(poolId, trx) {
 /**
  * Alasan langkah status berikutnya BELUM boleh dilakukan (null = boleh).
  * Satu sumber aturan: dipakai changeStatus() untuk validasi, dan buildActions() untuk FE.
+ * Label status di pesan diambil dari tabel unit_statuses (`next.name`), bukan ditulis manual.
  */
 function getNextStepBlockedReason(next, inspectionCount) {
   if (!next) return 'Unit sudah berada di status terakhir';
   if (next.code === UNIT_STATUS.DIINSPEKSI) {
-    return 'Status Diinspeksi diberikan otomatis saat hasil inspeksi pertama disimpan. Tambahkan hasil inspeksi untuk unit ini.';
+    return `Status ${next.name} diberikan otomatis saat hasil inspeksi pertama disimpan. Tambahkan hasil inspeksi untuk unit ini.`;
   }
   if (next.code === UNIT_STATUS.SIAP_JUAL && inspectionCount === 0) {
-    return 'Unit belum pernah diinspeksi sehingga belum dapat ditandai Siap Jual';
+    return `Unit belum pernah diinspeksi sehingga belum dapat ditandai ${next.name}`;
   }
   return null;
 }
@@ -199,7 +200,8 @@ export async function remove(id) {
   const unit = await findOrFail(id);
 
   if (unit.status.code !== UNIT_STATUS.MASUK) {
-    throw AppError.conflict(`Unit hanya dapat dihapus saat berstatus Masuk. Status unit ini: ${unit.status.name}`);
+    const masuk = await referenceRepository.findStatusByCode(UNIT_STATUS.MASUK);
+    throw AppError.conflict(`Unit hanya dapat dihapus saat berstatus ${masuk.name}. Status unit ini: ${unit.status.name}`);
   }
   if (unit.inspection_count > 0) {
     throw AppError.conflict('Unit yang sudah memiliki hasil inspeksi tidak dapat dihapus');
