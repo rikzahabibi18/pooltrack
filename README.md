@@ -7,6 +7,9 @@ Dibuat sebagai *technical challenge* CRUD dashboard dengan frontend dan backend 
 > Studi kasus ini fiktif dan disederhanakan untuk keperluan technical challenge. Alur bisnis sebenarnya di industri
 > pengelolaan aset tentu jauh lebih kompleks.
 
+**Demo online:** https://pooltrack-rust.vercel.app — login dengan [akun demo](#login--keamanan)
+(`admin@pooltrack.example` / `pooltrack123`). API: https://pooltrack-api.vercel.app/api/health
+
 ---
 
 ## Daftar isi
@@ -437,15 +440,28 @@ Kembalikan data ke kondisi awal dengan `npm run db:reset`.
 
 ## Deploy
 
-Rencana: **frontend → Vercel**, **backend → Vercel** (Express sebagai serverless function), **database → Aiven for MySQL**.
+| Bagian | Platform | URL |
+|---|---|---|
+| Frontend | Vercel (project root `frontend/`, Vite) | https://pooltrack-rust.vercel.app |
+| Backend | Vercel (project root `backend/`, Express sebagai serverless function) | https://pooltrack-api.vercel.app/api |
+| Database | Aiven for MySQL 8 | — (hanya bisa diakses backend) |
 
 Di lokal database memakai MariaDB; di cloud memakai MySQL 8 karena kompatibel penuh dengan driver `mysql2` dan
 query yang dipakai. Koneksi backend ↔ database cloud dienkripsi dengan SSL (`DB_SSL=true` + `DB_SSL_CA`).
+
+- Setiap push ke branch `main` otomatis men-deploy ulang kedua project.
+- Secret (`DB_PASSWORD`, `JWT_SECRET`) hanya diisi di Environment Variables Vercel bertipe *sensitive*, tidak ada di repo.
+- `CORS_ORIGIN` backend diisi domain frontend, jadi API hanya menerima request dari aplikasi PoolTrack.
+- Tabel & data contoh di Aiven dibuat sekali dari laptop dengan `npm run migrate` dan `npm run seed`.
+
+Langkah lengkapnya ada di [docs/03-panduan-deploy.md](docs/03-panduan-deploy.md).
 
 ## Dokumen lain
 
 - [docs/01-studi-kasus.md](docs/01-studi-kasus.md) — latar belakang, masalah, ruang lingkup
 - [docs/02-workflow-database.md](docs/02-workflow-database.md) — workflow, detail tabel, aturan bisnis, keputusan desain
+- [docs/03-panduan-deploy.md](docs/03-panduan-deploy.md) — langkah deploy ke Vercel + Aiven
+- [docs/demo-queries.sql](docs/demo-queries.sql) — query SQL untuk memverifikasi data langsung di database
 - [backend/requests.http](backend/requests.http) — koleksi request API
 
 ---
