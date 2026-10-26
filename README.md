@@ -247,7 +247,7 @@ Middleware requireAuth ─▶ token valid? lanjut : 401 ─▶ frontend otomatis
 ### 1. Database
 
 > **Tentang Docker:** `docker-compose.yml` hanya menyediakan MariaDB untuk development. Backend dan frontend dijalankan
-> langsung dengan Node.js (di lokal) dan di-deploy dari kode sumber ke Render & Vercel, sehingga tidak memerlukan
+> langsung dengan Node.js (di lokal) dan di-deploy dari kode sumber ke Vercel, sehingga tidak memerlukan
 > Docker.
 
 **Pilihan A — Docker:**
@@ -311,7 +311,7 @@ atau salah format.
 | Variabel | Contoh | Keterangan |
 |---|---|---|
 | `NODE_ENV` | `development` | `development` / `production` / `test` |
-| `PORT` | `4000` | Port API |
+| `PORT` | `4000` | Port API (opsional, bawaan 4000; tidak dipakai di Vercel) |
 | `CORS_ORIGIN` | `http://localhost:5173` | Origin frontend; pisahkan dengan koma jika lebih dari satu |
 | `DB_HOST` | `127.0.0.1` | Host MariaDB |
 | `DB_PORT` | `3306` | Port MariaDB |
@@ -437,7 +437,7 @@ Kembalikan data ke kondisi awal dengan `npm run db:reset`.
 
 ## Deploy
 
-Rencana: **frontend → Vercel**, **backend → Render**, **database → Aiven for MySQL**.
+Rencana: **frontend → Vercel**, **backend → Vercel** (Express sebagai serverless function), **database → Aiven for MySQL**.
 
 Di lokal database memakai MariaDB; di cloud memakai MySQL 8 karena kompatibel penuh dengan driver `mysql2` dan
 query yang dipakai. Koneksi backend ↔ database cloud dienkripsi dengan SSL (`DB_SSL=true` + `DB_SSL_CA`).

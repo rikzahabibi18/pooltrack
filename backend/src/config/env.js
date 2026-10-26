@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { z } from 'zod';
+import { DEFAULT_PORT } from '../constants/api.js';
 
 /**
  * Semua environment variable dibaca dan divalidasi DI SINI SAJA.
@@ -8,7 +9,7 @@ import { z } from 'zod';
  */
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']),
-  PORT: z.coerce.number().int().positive(),
+  PORT: z.coerce.number().int().positive().default(DEFAULT_PORT),
   CORS_ORIGIN: z.string().min(1),
 
   DB_HOST: z.string().min(1),

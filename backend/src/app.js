@@ -27,3 +27,9 @@ export function createApp() {
 
   return app;
 }
+
+/**
+ * Instance siap pakai. Dipakai server.js (lokal) dan oleh Vercel, yang menjalankan
+ * app Express sebagai serverless function dengan mencari `export default` di file ini.
+ */
+export default createApp();

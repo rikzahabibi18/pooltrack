@@ -1,4 +1,4 @@
-import { createApp } from './app.js';
+import app from './app.js';
 import { checkDatabaseConnection, closeDatabase } from './config/database.js';
 import { env } from './config/env.js';
 import { API_PREFIX } from './constants/api.js';
@@ -14,7 +14,7 @@ async function start() {
     process.exit(1);
   }
 
-  const server = createApp().listen(env.port, () => {
+  const server = app.listen(env.port, () => {
     console.log(`API berjalan di http://localhost:${env.port}${API_PREFIX} (${env.nodeEnv})`);
   });
 
